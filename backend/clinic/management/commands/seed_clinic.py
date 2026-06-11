@@ -24,7 +24,7 @@ class Command(BaseCommand):
         ]
         users = {}
         for email, first_name, last_name, role in accounts:
-            user, _ = User.objects.get_or_create(
+            user, created = User.objects.get_or_create(
                 username=email,
                 defaults={'email': email, 'first_name': first_name, 'last_name': last_name},
             )
@@ -33,7 +33,8 @@ class Command(BaseCommand):
             user.last_name = last_name
             user.is_staff = role == 'admin'
             user.is_superuser = role == 'admin'
-            user.set_password('Clinic@123')
+            if created:
+                user.set_password('Clinic@123')
             user.save()
             UserProfile.objects.update_or_create(user=user, defaults={'role': role, 'phone': '+237 600 000 000'})
             users[role] = user

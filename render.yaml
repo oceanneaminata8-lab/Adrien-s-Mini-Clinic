@@ -1,0 +1,32 @@
+databases:
+  - name: carepoint-database
+    databaseName: carepoint
+    user: carepoint
+
+services:
+  - type: web
+    name: carepoint-api
+    runtime: python
+    rootDir: backend
+    buildCommand: bash build.sh
+    startCommand: gunicorn clinic_project.wsgi:application
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: carepoint-database
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: ALLOWED_HOSTS
+        value: carepoint-api.onrender.com
+      - key: FRONTEND_URLS
+        sync: false
+      - key: FRONTEND_BASE_URL
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.12.8

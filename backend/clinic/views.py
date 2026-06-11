@@ -1,4 +1,5 @@
 import csv
+import os
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
@@ -107,7 +108,8 @@ def password_reset_request(request):
     if user:
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-        link = f'http://localhost:4200/?reset_uid={uid}&reset_token={token}'
+        frontend_url = os.environ.get('FRONTEND_BASE_URL', 'http://localhost:4200').rstrip('/')
+        link = f'{frontend_url}/?reset_uid={uid}&reset_token={token}'
         send_mail(
             'CarePoint password reset',
             f'Use this link to reset your password: {link}',

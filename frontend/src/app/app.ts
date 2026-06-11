@@ -82,7 +82,11 @@ interface Notice {
   styleUrl: './app.css'
 })
 export class App implements OnInit {
-  private apiUrl = 'http://127.0.0.1:8000/api';
+  private apiUrl = (
+    (globalThis as typeof globalThis & {
+      __CAREPOINT_CONFIG__?: { apiUrl?: string };
+    }).__CAREPOINT_CONFIG__?.apiUrl || 'http://127.0.0.1:8000/api'
+  ).replace(/\/+$/, '');
   private noticeTimer?: ReturnType<typeof setTimeout>;
   currentUser: AuthUser | null = null;
 
