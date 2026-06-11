@@ -1,0 +1,544 @@
+<section *ngIf="!loggedIn" class="auth-shell" [attr.data-view]="authView">
+  <div class="auth-image" aria-hidden="true"></div>
+  <div class="auth-overlay"></div>
+
+  <header class="public-nav">
+    <button class="public-brand" (click)="showAuth('landing')">
+      <span class="brand-mark">+</span>
+      <span><strong>CarePoint</strong><small>Mini Clinic</small></span>
+    </button>
+    <nav aria-label="Public navigation">
+      <button [class.active]="authView === 'landing'" (click)="showAuth('landing')">Home</button>
+      <button [class.active]="authView === 'login'" (click)="showAuth('login')">Sign in</button>
+      <button class="nav-register" (click)="showAuth('register')">Register</button>
+    </nav>
+  </header>
+
+  <section *ngIf="authView === 'landing'" class="landing-content">
+    <div class="landing-copy">
+      <span class="eyebrow light">Connected care for modern clinics</span>
+      <h1>Better clinic management starts here.</h1>
+      <p>Bring patient records, appointments, consultations and billing into one secure, simple workspace.</p>
+      <div class="landing-actions">
+        <button class="auth-primary" (click)="showAuth('register')">Create an account</button>
+        <button class="auth-secondary" (click)="showAuth('login')">Sign in</button>
+      </div>
+      <div class="landing-features">
+        <span>Patient records</span><span>Smart scheduling</span><span>Clinical follow-up</span>
+      </div>
+    </div>
+    <div class="landing-stat">
+      <strong>One clinic.</strong>
+      <span>One clear view of every patient journey.</span>
+    </div>
+  </section>
+
+  <section *ngIf="authView === 'login'" class="auth-content">
+    <div class="auth-card">
+      <button class="back-link" (click)="showAuth('landing')">Back to home</button>
+      <span class="eyebrow">Secure clinic access</span>
+      <h2>Welcome back</h2>
+      <p>Sign in to continue to your CarePoint workspace.</p>
+
+      <label for="email"><span>Email address</span>
+        <input id="email" [(ngModel)]="login.email" type="email" placeholder="admin@clinic.com">
+      </label>
+      <label for="password"><span>Password</span>
+        <input id="password" [(ngModel)]="login.password" type="password" placeholder="Enter your password">
+      </label>
+      <button class="primary full" (click)="signIn()">Sign in to clinic</button>
+      <button class="forgot-link" (click)="showAuth('forgot')">Forgot your password?</button>
+      <p class="auth-switch">New to CarePoint? <button (click)="showAuth('register')">Create an account</button></p>
+    </div>
+  </section>
+
+  <section *ngIf="authView === 'register'" class="auth-content">
+    <div class="auth-card register-card">
+      <button class="back-link" (click)="showAuth('landing')">Back to home</button>
+      <span class="eyebrow">Join CarePoint</span>
+      <h2>Create your account</h2>
+      <p>Register to request appointments or access your clinic workspace.</p>
+
+      <div class="register-grid">
+        <label><span>Full name *</span><input [(ngModel)]="registration.fullName" placeholder="Your full name"></label>
+        <label><span>Phone number *</span><input [(ngModel)]="registration.phone" placeholder="+237 6..."></label>
+        <label class="wide-field"><span>Email address *</span><input [(ngModel)]="registration.email" type="email" placeholder="you@example.com"></label>
+        <label><span>Password *</span><input [(ngModel)]="registration.password" type="password" placeholder="Minimum 6 characters"></label>
+        <label><span>Confirm password *</span><input [(ngModel)]="registration.confirmPassword" type="password" placeholder="Repeat password"></label>
+      </div>
+
+      <button class="primary full" (click)="register()">Create account</button>
+      <p class="auth-switch">Already registered? <button (click)="showAuth('login')">Sign in</button></p>
+    </div>
+  </section>
+
+  <section *ngIf="authView === 'forgot'" class="auth-content">
+    <div class="auth-card">
+      <button class="back-link" (click)="showAuth('login')">Back to sign in</button>
+      <span class="eyebrow">Account recovery</span>
+      <h2>Reset your password</h2>
+      <p>Enter your account email. We will send a secure, time-limited reset link.</p>
+      <label><span>Email address</span>
+        <input [(ngModel)]="resetEmail" type="email" placeholder="you@example.com">
+      </label>
+      <button class="primary full" (click)="requestPasswordReset()">Send reset instructions</button>
+    </div>
+  </section>
+
+  <section *ngIf="authView === 'reset'" class="auth-content">
+    <div class="auth-card">
+      <span class="eyebrow">Secure password reset</span>
+      <h2>Choose a new password</h2>
+      <p>Your new password must contain at least eight characters.</p>
+      <label><span>New password</span>
+        <input [(ngModel)]="resetCredentials.password" type="password" placeholder="Enter a secure password">
+      </label>
+      <label><span>Confirm password</span>
+        <input [(ngModel)]="resetCredentials.confirmPassword" type="password" placeholder="Repeat your password">
+      </label>
+      <button class="primary full" (click)="confirmPasswordReset()">Update password</button>
+    </div>
+  </section>
+
+  <div *ngIf="notice" class="notice auth-notice" [class.error]="notice.type === 'error'" [class.info]="notice.type === 'info'">
+    <span>{{ notice.type === 'error' ? '!' : '+' }}</span>{{ notice.message }}
+  </div>
+</section>
+
+<main *ngIf="loggedIn" class="app-shell" [class.nav-open]="navOpen">
+  <button *ngIf="navOpen" class="nav-backdrop" aria-label="Close navigation" (click)="closeNav()"></button>
+
+  <aside class="sidebar" [class.open]="navOpen" id="clinic-navigation">
+    <div class="sidebar-brand">
+      <div class="logo">
+        <img *ngIf="clinicSettings.logo_url" [src]="clinicSettings.logo_url" alt="Clinic logo">
+        <span *ngIf="!clinicSettings.logo_url">+</span>
+      </div>
+      <div><strong>{{ clinicSettings.clinic_name }}</strong><small>Clinic workspace</small></div>
+      <button class="nav-close" aria-label="Close navigation" (click)="closeNav()">
+        <span></span><span></span>
+      </button>
+    </div>
+
+    <nav aria-label="Main navigation">
+      <small class="nav-label">Workspace</small>
+      <button [class.active]="activePage === 'dashboard'" (click)="go('dashboard')" *ngIf="role === 'admin' || role === 'doctor'">
+        <span class="nav-icon">01</span><span>Overview</span>
+      </button>
+      <button [class.active]="activePage === 'patients'" (click)="go('patients')" *ngIf="role === 'admin' || role === 'doctor'">
+        <span class="nav-icon">02</span><span>Patients</span>
+      </button>
+      <button [class.active]="activePage === 'appointments'" (click)="go('appointments')" *ngIf="role === 'admin' || role === 'doctor'">
+        <span class="nav-icon">03</span><span>Appointments</span>
+      </button>
+      <button [class.active]="activePage === 'consultation'" (click)="go('consultation')" *ngIf="role === 'doctor' || role === 'admin'">
+        <span class="nav-icon">04</span><span>Consultation</span>
+      </button>
+      <button [class.active]="activePage === 'prescriptions'" (click)="go('prescriptions')" *ngIf="role === 'doctor' || role === 'admin'">
+        <span class="nav-icon">05</span><span>Prescriptions</span>
+      </button>
+      <button [class.active]="activePage === 'billing'" (click)="go('billing')" *ngIf="role === 'admin'">
+        <span class="nav-icon">06</span><span>Billing</span>
+      </button>
+      <button [class.active]="activePage === 'pharmacy'" (click)="go('pharmacy')" *ngIf="role === 'admin'">
+        <span class="nav-icon">07</span><span>Pharmacy</span>
+      </button>
+      <button [class.active]="activePage === 'patient-booking'" (click)="go('patient-booking')">
+        <span class="nav-icon">08</span><span>Book appointment</span>
+      </button>
+      <button [class.active]="activePage === 'settings'" (click)="go('settings')" *ngIf="role === 'admin'">
+        <span class="nav-icon">09</span><span>Settings</span>
+      </button>
+    </nav>
+
+    <div class="clinic-status">
+      <span class="live-dot"></span>
+      <div><strong>Clinic open</strong><small>Closes at 6:00 PM</small></div>
+    </div>
+    <button class="logout" (click)="logout()" aria-label="Log out of CarePoint">
+      <span class="logout-icon">OUT</span><span>Log out</span>
+    </button>
+  </aside>
+
+  <section class="main-panel">
+    <header class="topbar">
+      <div class="page-heading">
+        <button class="menu-button" aria-label="Open navigation" aria-controls="clinic-navigation"
+          [attr.aria-expanded]="navOpen" (click)="toggleNav()">
+          <span></span><span></span><span></span>
+        </button>
+        <div>
+          <small>{{ today | date:'EEEE, d MMMM y' }}</small>
+          <h1>{{ currentPageLabel }}</h1>
+        </div>
+      </div>
+      <div class="header-actions">
+        <label class="search-box">
+          <span>Search</span>
+          <input [(ngModel)]="searchText" placeholder="Patients, IDs, doctors...">
+        </label>
+        <div class="user-chip">
+          <span>{{ role.slice(0, 2).toUpperCase() }}</span>
+          <div><strong>{{ role | titlecase }}</strong><small>Signed in</small></div>
+        </div>
+      </div>
+    </header>
+
+    <div *ngIf="notice" class="notice" [class.error]="notice.type === 'error'" [class.info]="notice.type === 'info'">
+      <span>{{ notice.type === 'error' ? '!' : '+' }}</span>{{ notice.message }}
+    </div>
+
+    <section class="content" *ngIf="activePage === 'dashboard'">
+      <div class="welcome-row">
+        <div>
+          <span class="eyebrow">Daily operations</span>
+          <h2>Good day, {{ role | titlecase }}</h2>
+          <p>{{ waitingToday }} patient{{ waitingToday === 1 ? '' : 's' }} waiting and {{ pendingBills }} payment{{ pendingBills === 1 ? '' : 's' }} to follow up.</p>
+        </div>
+        <div class="quick-actions">
+          <button class="secondary" (click)="go('patients')">Register patient</button>
+          <button class="primary" (click)="go('patient-booking')">New appointment</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <article class="stat">
+          <div class="stat-top"><span>Registered patients</span><i class="stat-icon blue">PT</i></div>
+          <strong>{{ patients.length }}</strong><small>{{ activePatients }} active records</small>
+        </article>
+        <article class="stat">
+          <div class="stat-top"><span>Today's visits</span><i class="stat-icon green">AP</i></div>
+          <strong>{{ todaysAppointments.length }}</strong><small>{{ completedToday }} completed</small>
+        </article>
+        <article class="stat">
+          <div class="stat-top"><span>Collected revenue</span><i class="stat-icon amber">FC</i></div>
+          <strong>{{ formatCurrency(revenue) }}</strong><small>FCFA from paid invoices</small>
+        </article>
+        <article class="stat">
+          <div class="stat-top"><span>Needs attention</span><i class="stat-icon red">!</i></div>
+          <strong>{{ waitingToday + pendingBills }}</strong><small>Queue and payments</small>
+        </article>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="panel schedule-panel">
+          <div class="panel-title">
+            <div><span class="eyebrow">Front desk</span><h2>Today's schedule</h2></div>
+            <button class="text-button" (click)="go('appointments')">View schedule</button>
+          </div>
+          <div class="schedule-head"><span>Time</span><span>Patient</span><span>Clinician</span><span>Status</span></div>
+          <div class="appointment-row" *ngFor="let item of todaysAppointments">
+            <b>{{ item.time }}</b>
+            <div class="patient-cell">
+              <span class="avatar">{{ item.patient_name.charAt(0) }}</span>
+              <div><strong>{{ item.patient_name }}</strong><small>{{ item.patient_code }} - {{ item.appointment_type }}</small></div>
+            </div>
+            <span>{{ item.doctor }}</span>
+            <span class="status" [attr.data-status]="item.status">{{ item.status }}</span>
+          </div>
+          <div class="empty-state" *ngIf="!todaysAppointments.length">No appointments scheduled today.</div>
+        </section>
+
+        <section class="panel side-card queue-summary">
+          <div class="panel-title"><div><span class="eyebrow">Live queue</span><h2>Patient flow</h2></div></div>
+          <div class="progress-ring"><strong>{{ completedToday }}/{{ todaysAppointments.length }}</strong><span>visits completed</span></div>
+          <div class="flow-row"><span><i class="dot green"></i>Completed</span><strong>{{ completedToday }}</strong></div>
+          <div class="flow-row"><span><i class="dot amber"></i>Waiting</span><strong>{{ waitingToday }}</strong></div>
+          <div class="flow-row"><span><i class="dot blue"></i>Confirmed</span><strong>{{ confirmedAppointments }}</strong></div>
+        </section>
+
+        <section class="panel side-card">
+          <div class="panel-title"><div><span class="eyebrow">Clinical team</span><h2>On duty</h2></div></div>
+          <div class="doctor-card"><span class="avatar doctor">SE</span><div><strong>Dr. Sarah Evans</strong><small>General medicine</small></div><i>Available</i></div>
+          <div class="doctor-card"><span class="avatar doctor">RP</span><div><strong>Dr. Raj Patel</strong><small>Internal medicine</small></div><i>With patient</i></div>
+          <div class="doctor-card"><span class="avatar doctor">AK</span><div><strong>Dr. Angela Kim</strong><small>Family medicine</small></div><i>Available</i></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'patients'">
+      <div class="section-intro">
+        <div><span class="eyebrow">Medical records</span><h2>Patient directory</h2><p>Register patients and find their clinic record quickly.</p></div>
+      </div>
+      <div class="stats-grid compact">
+        <article class="stat"><span>Total patients</span><strong>{{ patients.length }}</strong><small>All registered records</small></article>
+        <article class="stat"><span>Active patients</span><strong>{{ activePatients }}</strong><small>Currently receiving care</small></article>
+        <article class="stat"><span>Today's visits</span><strong>{{ todaysAppointments.length }}</strong><small>Across all clinicians</small></article>
+        <article class="stat"><span>Average age</span><strong>{{ averageAge }}</strong><small>Years</small></article>
+      </div>
+
+      <section class="panel form-panel">
+        <div class="form-heading"><span class="form-number">01</span><div><h2>Register a new patient</h2><p>Create a clinic ID and basic medical profile.</p></div></div>
+        <label><span>Full name *</span><input [(ngModel)]="newPatient.name" placeholder="e.g. Marie Mbappe"></label>
+        <label><span>Age *</span><input [(ngModel)]="newPatient.age" type="number" min="1" placeholder="Age"></label>
+        <label><span>Gender</span><select [(ngModel)]="newPatient.gender"><option>Female</option><option>Male</option><option>Other</option></select></label>
+        <label><span>Blood group</span><select [(ngModel)]="newPatient.blood_type"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></label>
+        <label><span>Phone number *</span><input [(ngModel)]="newPatient.phone" placeholder="+237 6..."></label>
+        <label><span>Email</span><input [(ngModel)]="newPatient.email" type="email" placeholder="patient@example.com"></label>
+        <label><span>Date of birth</span><input [(ngModel)]="newPatient.date_of_birth" type="date"></label>
+        <label><span>Reason for visit</span><input [(ngModel)]="newPatient.condition" list="frequent-conditions" placeholder="General checkup"></label>
+        <label><span>Address</span><input [(ngModel)]="newPatient.address" placeholder="Residential address"></label>
+        <label><span>Emergency contact</span><input [(ngModel)]="newPatient.emergency_contact_name" placeholder="Contact name"></label>
+        <label><span>Emergency phone</span><input [(ngModel)]="newPatient.emergency_contact_phone" placeholder="+237 6..."></label>
+        <label><span>Allergies</span><input [(ngModel)]="newPatient.allergies" placeholder="Known allergies"></label>
+        <label><span>Medical history</span><input [(ngModel)]="newPatient.medical_history" placeholder="Relevant history"></label>
+        <datalist id="frequent-conditions">
+          <option value="General checkup"><option value="Follow-up"><option value="Hypertension">
+          <option value="Diabetes"><option value="Asthma"><option value="Respiratory issue">
+        </datalist>
+        <button class="primary form-submit" (click)="addPatient()">Register patient</button>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-title"><div><h2>All patients</h2><p>{{ filteredPatients().length }} records shown</p></div></div>
+        <table>
+          <thead><tr><th>Patient</th><th>Clinic ID</th><th>Profile</th><th>Blood</th><th>Contact</th><th>Last condition</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let patient of filteredPatients()">
+              <td><div class="patient-cell"><span class="avatar">{{ patient.name.charAt(0) }}</span><strong>{{ patient.name }}</strong></div></td>
+              <td><span class="code">{{ patient.patient_id }}</span></td>
+              <td>{{ patient.age }} yrs - {{ patient.gender }}</td>
+              <td><strong class="blood">{{ patient.blood_type }}</strong></td>
+              <td>{{ patient.phone }}</td>
+              <td>{{ patient.condition || 'Not specified' }}</td>
+              <td><span class="status" [attr.data-status]="patient.status">{{ patient.status }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'appointments'">
+      <div class="section-intro action-intro">
+        <div><span class="eyebrow">Reception</span><h2>Appointment schedule</h2><p>Track arrivals and keep the clinical queue moving.</p></div>
+        <button class="primary" (click)="go('patient-booking')">Book appointment</button>
+      </div>
+      <div class="stats-grid compact">
+        <article class="stat"><span>All bookings</span><strong>{{ appointments.length }}</strong><small>Current schedule</small></article>
+        <article class="stat"><span>Confirmed</span><strong>{{ confirmedAppointments }}</strong><small>Ready to attend</small></article>
+        <article class="stat"><span>Waiting</span><strong>{{ pendingAppointments }}</strong><small>Needs confirmation or care</small></article>
+        <article class="stat"><span>Completed</span><strong>{{ completedToday }}</strong><small>Today's consultations</small></article>
+      </div>
+      <section class="panel table-panel">
+        <div class="panel-title"><div><h2>Clinic queue</h2><p>Update a patient's status as they move through the clinic.</p></div></div>
+        <table>
+          <thead><tr><th>Time</th><th>Patient</th><th>Visit</th><th>Clinician</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let appointment of filteredAppointments()">
+              <td><strong>{{ appointment.time }}</strong></td>
+              <td><div class="patient-cell"><span class="avatar">{{ appointment.patient_name.charAt(0) }}</span><div><strong>{{ appointment.patient_name }}</strong><small>{{ appointment.patient_code || 'New patient' }}</small></div></div></td>
+              <td>{{ appointment.appointment_type }}</td>
+              <td>{{ appointment.doctor }}</td>
+              <td>{{ appointment.date | date:'d MMM y' }}</td>
+              <td>
+                <select class="status-select" [(ngModel)]="appointment.status" (ngModelChange)="updateAppointmentStatus(appointment, $event)">
+                  <option>Pending</option><option>Confirmed</option><option>Waiting</option><option>Completed</option><option>Cancelled</option>
+                </select>
+              </td>
+              <td><button class="table-action" (click)="openConsultation(appointment)" *ngIf="role === 'admin' || role === 'doctor'">Open chart</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+
+    <section class="content consultation-content" *ngIf="activePage === 'consultation'">
+      <div class="section-intro"><div><span class="eyebrow">Clinical workspace</span><h2>Consultation room</h2><p>Review the patient, document findings and complete the visit.</p></div></div>
+      <div class="consult-grid">
+        <section class="panel queue">
+          <div class="panel-title"><div><h2>Today's queue</h2><p>{{ todaysAppointments.length }} scheduled</p></div></div>
+          <button class="queue-item" *ngFor="let item of todaysAppointments; let i = index"
+            [class.active]="item.patient_code === selectedPatient.patient_id" (click)="openConsultation(item)">
+            <span class="queue-number">{{ i + 1 }}</span>
+            <span><strong>{{ item.patient_name }}</strong><small>{{ item.time }} - {{ item.appointment_type }}</small></span>
+            <i [attr.data-status]="item.status">{{ item.status }}</i>
+          </button>
+        </section>
+
+        <section class="panel consultation-panel">
+          <div class="panel-title">
+            <div><span class="eyebrow">In consultation</span><h2>{{ selectedPatient.name }}</h2><p>{{ selectedPatient.patient_id }} - {{ selectedPatient.age }} yrs - {{ selectedPatient.gender }}</p></div>
+            <span class="status" data-status="Waiting">In progress</span>
+          </div>
+          <div class="vitals">
+            <article><small>Blood pressure</small><strong class="danger">142/91</strong><span>mmHg</span></article>
+            <article><small>Heart rate</small><strong>88</strong><span>bpm</span></article>
+            <article><small>Temperature</small><strong>37.2</strong><span>C</span></article>
+            <article><small>O2 saturation</small><strong>98</strong><span>%</span></article>
+          </div>
+          <label><span>Symptoms and complaints</span><textarea [(ngModel)]="consultation.symptoms" placeholder="Patient-reported symptoms"></textarea></label>
+          <label><span>Assessment and diagnosis *</span><textarea [(ngModel)]="consultation.diagnosis" placeholder="Clinical assessment"></textarea></label>
+          <label><span>Treatment notes</span><textarea [(ngModel)]="consultation.treatment_notes" placeholder="Plan, advice and follow-up"></textarea></label>
+          <label><span>Prescription</span><textarea [(ngModel)]="consultation.prescription" placeholder="Medication, dose and duration"></textarea></label>
+          <div class="actions"><button class="primary" (click)="saveConsultation()">Complete consultation</button><button class="secondary" (click)="printSummary()">Print summary</button></div>
+        </section>
+
+        <section class="panel patient-summary">
+          <div class="profile-head"><span class="avatar large">{{ selectedPatient.name.charAt(0) }}</span><div><h2>{{ selectedPatient.name }}</h2><p>{{ selectedPatient.patient_id }}</p></div></div>
+          <span class="status" [attr.data-status]="selectedPatient.status">{{ selectedPatient.status }} patient</span>
+          <div class="detail-list">
+            <div><span>Blood group</span><strong>{{ selectedPatient.blood_type }}</strong></div>
+            <div><span>Phone</span><strong>{{ selectedPatient.phone }}</strong></div>
+            <div><span>Primary concern</span><strong>{{ selectedPatient.condition }}</strong></div>
+            <div><span>Assigned doctor</span><strong>Dr. Sarah Evans</strong></div>
+          </div>
+          <div class="history"><h3>Medical history</h3><p><i></i>Hypertension - Stage 1</p><p><i></i>Seasonal allergic rhinitis</p></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'billing'">
+      <div class="section-intro"><div><span class="eyebrow">Accounts</span><h2>Billing and payments</h2><p>Track clinic revenue and outstanding patient balances.</p></div></div>
+      <div class="stats-grid compact">
+        <article class="stat"><span>Collected</span><strong>{{ formatCurrency(revenue) }}</strong><small>FCFA in paid invoices</small></article>
+        <article class="stat"><span>Outstanding</span><strong>{{ pendingBills }}</strong><small>Invoices awaiting payment</small></article>
+        <article class="stat"><span>Total invoices</span><strong>{{ bills.length }}</strong><small>Current billing records</small></article>
+        <article class="stat"><span>Collection rate</span><strong>{{ bills.length ? ((bills.length - pendingBills) / bills.length * 100 | number:'1.0-0') : 0 }}%</strong><small>Invoices paid</small></article>
+      </div>
+      <section class="panel invoice-form" *ngIf="showInvoiceForm">
+        <div class="panel-title"><div><span class="eyebrow">New invoice</span><h2>Bill a patient</h2><p>Add clinic services, prices and any discount.</p></div><button class="text-button" (click)="showInvoiceForm = false">Close</button></div>
+        <div class="invoice-fields">
+          <label><span>Patient *</span><select [(ngModel)]="newInvoice.patient"><option [ngValue]="0">Choose patient</option><option *ngFor="let patient of patients" [ngValue]="patient.id">{{ patient.name }} - {{ patient.patient_id }}</option></select></label>
+          <label><span>Due date</span><input [(ngModel)]="newInvoice.due_date" type="date"></label>
+          <label><span>Discount (FCFA)</span><input [(ngModel)]="newInvoice.discount" type="number" min="0"></label>
+        </div>
+        <div class="invoice-item" *ngFor="let item of newInvoice.items; let i = index">
+          <label><span>Service *</span><input [(ngModel)]="item.service" placeholder="Consultation, laboratory test..."></label>
+          <label><span>Quantity</span><input [(ngModel)]="item.quantity" type="number" min="1"></label>
+          <label><span>Unit price (FCFA)</span><input [(ngModel)]="item.unit_price" type="number" min="0"></label>
+          <button class="remove-button" (click)="removeInvoiceItem(i)">Remove</button>
+        </div>
+        <button class="table-action" (click)="addInvoiceItem()">Add another service</button>
+        <label class="invoice-notes"><span>Notes</span><textarea [(ngModel)]="newInvoice.notes" placeholder="Optional billing notes"></textarea></label>
+        <div class="invoice-total"><span>Invoice total</span><strong>{{ formatCurrency(invoiceSubtotal - newInvoice.discount) }} FCFA</strong></div>
+        <button class="primary" (click)="createInvoice()">Create invoice</button>
+      </section>
+      <section class="panel table-panel">
+        <div class="panel-title"><div><h2>Patient invoices</h2><p>Review and settle outstanding balances.</p></div><button class="primary" (click)="showInvoiceForm = !showInvoiceForm">Create invoice</button></div>
+        <table>
+          <thead><tr><th>Invoice</th><th>Patient</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let bill of bills">
+              <td><span class="code">{{ bill.invoice_no }}</span></td><td><strong>{{ bill.patient_name }}</strong></td>
+              <td><strong>{{ formatCurrency(bill.amount) }} FCFA</strong></td>
+              <td><span class="status" [attr.data-status]="bill.status">{{ bill.status }}</span></td>
+              <td><button class="table-action" *ngIf="bill.status !== 'Paid'" (click)="markBillPaid(bill)">Mark paid</button><span *ngIf="bill.status === 'Paid'" class="paid-note">Settled</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'prescriptions'">
+      <div class="section-intro"><div><span class="eyebrow">Medication orders</span><h2>Patient prescription history</h2><p>Browse every patient and all medicines prescribed during their visits.</p></div><button class="primary" (click)="printSummary()">Print view</button></div>
+      <section class="panel prescription-filter">
+        <label><span>Patient directory</span>
+          <select [(ngModel)]="selectedPrescriptionPatientId">
+            <option [ngValue]="0">All patients</option>
+            <option *ngFor="let patient of patients" [ngValue]="patient.id">{{ patient.name }} - {{ patient.patient_id }}</option>
+          </select>
+        </label>
+        <div><strong>{{ patients.length }}</strong><span>patients</span></div>
+        <div><strong>{{ prescriptions.length }}</strong><span>prescriptions</span></div>
+      </section>
+      <div class="prescription-list">
+        <section class="panel patient-prescriptions" *ngFor="let patient of prescriptionPatients">
+          <div class="profile-head"><span class="avatar">{{ patient.name.charAt(0) }}</span><div><h2>{{ patient.name }}</h2><p>{{ patient.patient_id }} - {{ patient.age }} yrs - {{ patient.blood_type || 'Blood group unknown' }}</p></div></div>
+          <div class="prescription-entry" *ngFor="let prescription of prescriptionsFor(patient)">
+            <div class="prescription-meta"><strong>{{ prescription.created_at | date:'d MMM y' }}</strong><span>{{ prescription.prescriber_name || 'Clinic doctor' }}</span><span class="status" [attr.data-status]="prescription.status">{{ prescription.status }}</span></div>
+            <div class="medicine-line" *ngFor="let item of prescription.items">
+              <strong>{{ item.medication_name }}</strong>
+              <span>{{ item.dosage }} - {{ item.frequency }} - {{ item.duration }}</span>
+              <small>{{ item.instructions || 'No additional instructions' }}</small>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="!prescriptionsFor(patient).length">No prescriptions recorded for this patient.</div>
+        </section>
+      </div>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'pharmacy'">
+      <div class="section-intro action-intro"><div><span class="eyebrow">Medicine store</span><h2>Pharmacy inventory</h2><p>Add medicines and monitor batches, expiry dates, prices and reorder levels.</p></div><button class="primary" (click)="showMedicineForm = !showMedicineForm">Add medicine</button></div>
+      <section class="panel medicine-form" *ngIf="showMedicineForm">
+        <div class="panel-title"><div><h2>New pharmacy stock</h2><p>Create the medicine and its first stock batch.</p></div><button class="text-button" (click)="showMedicineForm = false">Close</button></div>
+        <div class="medicine-fields">
+          <label><span>Medicine name *</span><input [(ngModel)]="newMedicine.name" placeholder="e.g. Metformin"></label>
+          <label><span>Generic name</span><input [(ngModel)]="newMedicine.generic_name" placeholder="Generic name"></label>
+          <label><span>Form</span><select [(ngModel)]="newMedicine.form"><option>Tablet</option><option>Capsule</option><option>Syrup</option><option>Injection</option><option>Cream</option><option>Drops</option></select></label>
+          <label><span>Strength</span><input [(ngModel)]="newMedicine.strength" placeholder="e.g. 500 mg"></label>
+          <label><span>Batch number *</span><input [(ngModel)]="newMedicine.batch_number" placeholder="Batch code"></label>
+          <label><span>Quantity *</span><input [(ngModel)]="newMedicine.quantity" type="number" min="0"></label>
+          <label><span>Reorder level</span><input [(ngModel)]="newMedicine.reorder_level" type="number" min="0"></label>
+          <label><span>Unit cost</span><input [(ngModel)]="newMedicine.unit_cost" type="number" min="0"></label>
+          <label><span>Selling price</span><input [(ngModel)]="newMedicine.selling_price" type="number" min="0"></label>
+          <label><span>Expiry date *</span><input [(ngModel)]="newMedicine.expiry_date" type="date"></label>
+        </div>
+        <button class="primary" (click)="addMedicineToPharmacy()">Save medicine to pharmacy</button>
+      </section>
+      <div class="stats-grid compact">
+        <article class="stat"><span>Medicines</span><strong>{{ medications.length }}</strong><small>Catalogue entries</small></article>
+        <article class="stat"><span>Stock batches</span><strong>{{ inventory.length }}</strong><small>Tracked inventory</small></article>
+        <article class="stat"><span>Low stock</span><strong>{{ lowStockItems.length }}</strong><small>Needs replenishment</small></article>
+        <article class="stat"><span>Available units</span><strong>{{ inventory.length ? inventory[0].quantity : 0 }}</strong><small>First tracked batch</small></article>
+      </div>
+      <section class="panel table-panel">
+        <table>
+          <thead><tr><th>Medicine</th><th>Batch</th><th>Supplier</th><th>Quantity</th><th>Reorder at</th><th>Expiry</th><th>Stock</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let item of inventory">
+              <td><strong>{{ item.medication_name }}</strong></td><td><span class="code">{{ item.batch_number }}</span></td>
+              <td>{{ item.supplier_name || 'Not assigned' }}</td><td>{{ item.quantity }}</td><td>{{ item.reorder_level }}</td>
+              <td>{{ item.expiry_date | date:'d MMM y' }}</td>
+              <td><span class="status" [attr.data-status]="item.low_stock ? 'Pending' : 'Active'">{{ item.low_stock ? 'Low stock' : 'In stock' }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'patient-booking'">
+      <div class="booking-layout">
+        <section class="booking-intro">
+          <span class="eyebrow light">Appointment request</span>
+          <h2>Plan your next clinic visit.</h2>
+          <p>Choose a clinician and a convenient time. The reception team will confirm your request.</p>
+          <div class="booking-promise"><span>1</span><div><strong>Choose your visit</strong><small>Select the service, date and clinician.</small></div></div>
+          <div class="booking-promise"><span>2</span><div><strong>Receive confirmation</strong><small>The clinic reviews your requested time.</small></div></div>
+          <div class="booking-promise"><span>3</span><div><strong>Come prepared</strong><small>Arrive 10 minutes before your visit.</small></div></div>
+        </section>
+        <section class="panel booking-card">
+          <div class="panel-title"><div><span class="eyebrow">Request a visit</span><h2>Appointment details</h2><p>Fields marked * are required.</p></div></div>
+          <div class="booking-form">
+            <label><span>Patient name *</span><input [(ngModel)]="booking.patient_name" placeholder="Full name"></label>
+            <label><span>Patient ID</span><input [(ngModel)]="booking.patient_code" placeholder="PT-0000 if known"></label>
+            <label><span>Clinician *</span><select [(ngModel)]="booking.doctor"><option>Dr. Sarah Evans</option><option>Dr. Raj Patel</option><option>Dr. Angela Kim</option></select></label>
+            <label><span>Visit type *</span><select [(ngModel)]="booking.appointment_type"><option>General checkup</option><option>Consultation</option><option>Follow-up</option><option>Blood test review</option><option>Diabetes review</option></select></label>
+            <label><span>Preferred date *</span><input [(ngModel)]="booking.date" type="date" [min]="todayIso"></label>
+            <label><span>Preferred time *</span><select [(ngModel)]="booking.time"><option>09:00 AM</option><option>09:45 AM</option><option>10:30 AM</option><option>11:15 AM</option><option>02:00 PM</option><option>03:30 PM</option></select></label>
+            <label class="wide-field"><span>Notes for the clinic</span><textarea [(ngModel)]="booking.notes" placeholder="Briefly describe your reason for visiting"></textarea></label>
+          </div>
+          <button class="primary booking-submit" (click)="bookAppointment()">Request appointment</button>
+        </section>
+      </div>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'settings'">
+      <div class="section-intro"><div><span class="eyebrow">Administration</span><h2>Clinic settings</h2><p>Update the identity and contact information shown across the workspace.</p></div></div>
+      <section class="panel settings-card">
+        <div class="settings-logo">
+          <div class="logo-preview">
+            <img *ngIf="clinicSettings.logo_url" [src]="clinicSettings.logo_url" alt="Clinic logo preview">
+            <span *ngIf="!clinicSettings.logo_url">+</span>
+          </div>
+          <div><h3>Clinic logo</h3><p>Upload a square JPG or PNG for the sidebar.</p><label class="upload-button">Choose image<input type="file" (change)="onFileSelected($event)" accept="image/*"></label></div>
+        </div>
+        <div class="settings-form">
+          <label><span>Clinic name</span><input [(ngModel)]="clinicSettings.clinic_name" placeholder="Clinic name"></label>
+          <label><span>Email address</span><input [(ngModel)]="clinicSettings.contact_email" type="email" placeholder="clinic@example.com"></label>
+          <label class="wide-field"><span>Physical address</span><textarea [(ngModel)]="clinicSettings.address" placeholder="Clinic address"></textarea></label>
+        </div>
+        <div class="settings-actions"><button class="primary" (click)="saveSettings()">Save clinic settings</button></div>
+      </section>
+    </section>
+  </section>
+</main>
